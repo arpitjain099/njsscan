@@ -65,9 +65,9 @@ def print_errors(errors):
         return
     paths = sorted({err['path'] for err in errors if err.get('path')})
     logger.error(
-        '{} file(s) could not be scanned and were skipped: {}. '
-        'The report below is incomplete.'.format(
-            len(paths), ', '.join(paths)))
+        '%s file(s) could not be scanned and were skipped: %s. '
+        'The report below is incomplete.',
+        len(paths), ', '.join(paths))
 
 
 def cli_output(outfile, scan_results, version, fmt):

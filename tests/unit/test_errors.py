@@ -4,7 +4,11 @@ import json
 import pytest
 
 from njsscan.__main__ import handle_exit
-from njsscan.formatters import sarif
+from njsscan.formatters import (
+    gitlab_sast,
+    json_out,
+    sarif,
+)
 from njsscan.njsscan import NJSScan
 
 
@@ -38,6 +42,13 @@ def test_unparseable_file_is_an_error(tmp_path):
     report = json.loads(sarif.sarif_output(None, result, '0.0.0'))
     assert not report['runs'][0]['invocations'][0]['executionSuccessful']
 
+    gitlab = json.loads(gitlab_sast.gitlab_sast_output(None, result, '0.0.0'))
+    assert gitlab['scan']['status'] == 'failure'
+
+    dumped = json.loads(json_out.json_output(None, result.copy(), '0.0.0'))
+    assert dumped['errors']
+    assert dumped['nodejs'] == {}
+
 
 def test_parseable_file_is_not_an_error(tmp_path):
     (tmp_path / 'ok.js').write_text(SINK)
@@ -48,6 +59,13 @@ def test_parseable_file_is_not_an_error(tmp_path):
 
     report = json.loads(sarif.sarif_output(None, result, '0.0.0'))
     assert report['runs'][0]['invocations'][0]['executionSuccessful']
+
+    gitlab = json.loads(gitlab_sast.gitlab_sast_output(None, result, '0.0.0'))
+    assert gitlab['scan']['status'] == 'success'
+
+    dumped = json.loads(json_out.json_output(None, result.copy(), '0.0.0'))
+    assert not dumped['errors']
+    assert 'generic_os_command_exec' in dumped['nodejs']
 
 
 def test_clean_file_exits_zero(tmp_path):
